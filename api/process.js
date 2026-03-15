@@ -1,64 +1,46 @@
-import { GoogleGenerativeAI } from "@google/generative-ai";
 import ExcelJS from "exceljs";
+import { transliterateMalayalam } from "../lib/gemini.js";
 
 export default async function handler(req, res) {
 
-if (req.method !== "POST") {
-return res.status(405).json({ error: "Method not allowed" });
-}
+  if (req.method !== "POST") {
+    return res.status(405).json({ error: "Method not allowed" });
+  }
 
-try {
+  try {
 
-const { rows } = req.body;
+    let { rows } = req.body;
 
-const sorted = rows.sort((a,b)=> a.Name.localeCompare(b.Name));
+    // Use Gemini transliteration
+    const processedRows = await transliterateMalayalam(rows);
 
-const workbook = new ExcelJS.Workbook();
-const sheet = workbook.addWorksheet("Sorted Data");
+    // Sort names
+    processedRows.sort((a,b)=> a.Name.localeCompare(b.Name));
 
-sheet.columns = [
-{header:'Serial No', key:'serial', width:10},
-{header:'Name', key:'name', width:25},
-{header:'Guardian Name', key:'guardian', width:25},
-{header:'House No', key:'house', width:10},
-{header:'Gender', key:'gender', width:10},
-{header:'Age', key:'age', width:10},
-{header:'Group', key:'group', width:15}
-];
+    const workbook = new ExcelJS.Workbook();
+    const sheet = workbook.addWorksheet("Sorted Data");
 
-sorted.forEach((row,index)=>{
+    sheet.columns = [
+      {header:'Serial No', key:'SerialNo'},
+      {header:'Name', key:'Name'},
+      {header:'Guardian Name', key:'GuardianName'},
+      {header:'House No', key:'HouseNo'},
+      {header:'Gender', key:'Gender'},
+      {header:'Age', key:'Age'}
+    ];
 
-let start = Math.floor(index/100)*100+1;
-let end = start+99;
+    processedRows.forEach(row => sheet.addRow(row));
 
-sheet.addRow({
-serial: row.SerialNo,
-name: row.Name,
-guardian: row.GuardianName,
-house: row.HouseNo,
-gender: row.Gender,
-age: row.Age,
-group: `${start}-${end}`
-});
+    res.setHeader(
+      "Content-Type",
+      "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+    );
 
-});
+    await workbook.xlsx.write(res);
+    res.end();
 
-res.setHeader(
-"Content-Type",
-"application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
-);
-
-res.setHeader(
-"Content-Disposition",
-"attachment; filename=sorted_data.xlsx"
-);
-
-await workbook.xlsx.write(res);
-res.end();
-
-}
-catch(err){
-res.status(500).json({error:err.message});
-}
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
 
 }
