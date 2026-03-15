@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>PDF Sorting Tool</title>
+</head>
+
+<body>
+
+<h2>Upload Data</h2>
+
+<textarea id="json" rows="10" cols="60">
+</textarea>
+
+<br><br>
+
+<button onclick="send()">Generate Excel</button>
+
+<script>
+
+async function send(){
+
+const rows = JSON.parse(document.getElementById("json").value);
+
+const res = await fetch("/api/process",{
+method:"POST",
+headers:{ "Content-Type":"application/json"},
+body:JSON.stringify({rows})
+});
+
+const blob = await res.blob();
+
+const url = window.URL.createObjectURL(blob);
+
+const a = document.createElement("a");
+a.href = url;
+a.download = "sorted_data.xlsx";
+a.click();
+
+}
+
+</script>
+
+</body>
+</html>
