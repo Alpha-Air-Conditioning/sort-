@@ -1,30 +1,25 @@
 <!DOCTYPE html>
 <html>
-<head>
-<title>PDF Sorting Tool</title>
-</head>
-
 <body>
 
-<h2>Upload Data</h2>
+<h2>Upload Voter PDF</h2>
 
-<textarea id="json" rows="10" cols="60">
-</textarea>
+<input type="file" id="file">
 
-<br><br>
-
-<button onclick="send()">Generate Excel</button>
+<button onclick="upload()">Extract</button>
 
 <script>
 
-async function send(){
+async function upload(){
 
-const rows = JSON.parse(document.getElementById("json").value);
+const file = document.getElementById("file").files[0];
 
-const res = await fetch("/api/process",{
+const form = new FormData();
+form.append("file",file);
+
+const res = await fetch("/api/extract",{
 method:"POST",
-headers:{ "Content-Type":"application/json"},
-body:JSON.stringify({rows})
+body:form
 });
 
 const blob = await res.blob();
@@ -33,7 +28,7 @@ const url = window.URL.createObjectURL(blob);
 
 const a = document.createElement("a");
 a.href = url;
-a.download = "sorted_data.xlsx";
+a.download = "voters.xlsx";
 a.click();
 
 }
