@@ -1,0 +1,16 @@
+{
+  "name": "pdf-sorting-tool",
+  "version": "1.0.0",
+  "description": "PDF OCR, transliteration, sorting and Excel export",
+  "main": "index.js",
+  "type": "module",
+  "scripts": {
+    "dev": "vercel dev",
+    "build": "echo build complete",
+    "start": "vercel dev"
+  },
+  "dependencies": {
+    "@google/generative-ai": "^0.17.0",
+    "exceljs": "^4.4.0"
+  }
+}
